@@ -78,7 +78,7 @@ class minCharRNN(filename: String) extends RNN {
     var t = 0
 
     // forward pass
-    for( t <- (0 until inputs.length) ) {
+    for( t <- inputs.indices ) {
       xs += DenseMatrix.zeros[Double](vocab_size, 1)
       xs(t)(inputs(t), 0) = 1
       // hidden state
@@ -100,7 +100,7 @@ class minCharRNN(filename: String) extends RNN {
 
     dhnext = DenseMatrix.zeros[Double](hidden_size,1)
     t = 0
-    for( t <- inputs.length-1 to 0 by -1) {
+    for( t <- inputs.length-1 to 0 by -1 ) {
       var dy = ps(t).copy
       val tar = targets(t)
       dy(tar,0) -= 1
@@ -116,10 +116,11 @@ class minCharRNN(filename: String) extends RNN {
     }
 
     // clip gradients
-    val params = Iterator(dWxh, dWhh, dWhy, dbh, dby)
-    while(params.hasNext) {
-      clip.inPlace(params.next(), -5.0, 5.0)
-    }
+    dWxh = clip(dWxh, -5.0, 5.0)
+    dWhh = clip(dWhh, -5.0, 5.0)
+    dWhy = clip(dWhy, -5.0, 5.0)
+    dbh = clip(dbh, -5.0, 5.0)
+    dby = clip(dby, -5.0, 5.0)
 
     return (loss, dWxh, dWhh, dWhy, dbh, dby, hs(inputs.length - 1))
   }
@@ -156,12 +157,12 @@ class minCharRNN(filename: String) extends RNN {
         hprev = DenseMatrix.zeros[Double](hidden_size,1)
         p = 0
       }
-      val inputs = data.slice(p, p+history_length).map(map_ch_ix).toList
-      val targets = data.slice(p+1, p+history_length+1).map(map_ch_ix).toList
+      var inputs = data.slice(p, p+history_length).map(map_ch_ix).toList
+      var targets = data.slice(p+1, p+history_length+1).map(map_ch_ix).toList
 
       // sample when the number of iterations is something
       if(n % 10000 == 0) {
-        val sample_ix = sample(hprev, inputs(0), 1000)
+        val sample_ix = sample(hprev, inputs.head, 1000)
         val chars = sample_ix.map(map_ix_ch).mkString
         println("---\n")
         println(chars)
