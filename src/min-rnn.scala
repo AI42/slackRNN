@@ -1,7 +1,6 @@
 // load breeze and other dependencies
 import scala.Predef
 import scala.collection.mutable.ArrayBuffer
-import scala.collection.mutable.Map
 import breeze.linalg._
 import breeze.numerics._
 import scala.io.Source
@@ -21,12 +20,9 @@ class minCharRNN(filename: String) extends RNN {
 
   // print loaded stats
   println("Loaded text file has " + data_size + " characters, " + vocab_size + " unique")
-  println(chars.mkString)
 
   var map_ch_ix = (0 until vocab_size).map((i: Int) => (chars(i) -> i)).toMap
   var map_ix_ch = (0 until vocab_size).map((i: Int) => (i -> chars(i))).toMap
-  println(map_ch_ix.mkString)
-  println(map_ix_ch.mkString)
 
   var xs: ArrayBuffer[DenseMatrix[Double]] = _
   var hs: ArrayBuffer[DenseMatrix[Double]] = _
@@ -164,8 +160,8 @@ class minCharRNN(filename: String) extends RNN {
       val targets = data.slice(p+1, p+history_length+1).map(map_ch_ix).toList
 
       // sample when the number of iterations is something
-      if(n % 1000 == 0) {
-        val sample_ix = sample(hprev, inputs(0), 200)
+      if(n % 10000 == 0) {
+        val sample_ix = sample(hprev, inputs(0), 1000)
         val chars = sample_ix.map(map_ix_ch).mkString
         println("---\n")
         println(chars)
@@ -179,7 +175,7 @@ class minCharRNN(filename: String) extends RNN {
       // calculate new loss
       smooth_loss = smooth_loss * 0.999 + loss * 0.001
       // print progress
-      if(n % 1000 == 0) println("Iteration " + n + ", loss: " + smooth_loss)
+      if(n % 10000 == 0) println("Iteration " + n + ", loss: " + smooth_loss)
 
       // update parameters
       val weights = List(Wxh, Whh, Why, bh, by)
