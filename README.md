@@ -6,7 +6,7 @@ Otherwise, it should perform the same.
 
 Original Python code: <https://gist.github.com/karpathy/d4dee566867f8291f086>
 
-## Disclaimer
+# Basic overview
 
-As of now, this doesn't yet perform as exepected. The code compiles and runs, but the outputs from training
-are not satisfactory...
+The crux of this model is the `minCharRNN` class, which implements the basic recurrent neural network. The `main()`
+method of this class trains the model, while also regularly sampling during training and reporting the progress.
