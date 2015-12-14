@@ -21,10 +21,12 @@ class minCharRNN(filename: String) extends RNN {
 
   // print loaded stats
   println("Loaded text file has " + data_size + " characters, " + vocab_size + " unique")
-  println(chars)
+  println(chars.mkString)
 
   var map_ch_ix = (0 until vocab_size).map((i: Int) => (chars(i) -> i)).toMap
   var map_ix_ch = (0 until vocab_size).map((i: Int) => (i -> chars(i))).toMap
+  println(map_ch_ix.mkString)
+  println(map_ix_ch.mkString)
 
   var xs: ArrayBuffer[DenseMatrix[Double]] = _
   var hs: ArrayBuffer[DenseMatrix[Double]] = _
@@ -141,7 +143,7 @@ class minCharRNN(filename: String) extends RNN {
       val choice = rand()
       val cdf = accumulate(p.toDenseVector)
       var ix = 0
-      (0 until cdf.length).foreach((d: Int) => if(cdf(d) <= choice) ix = d)
+      (0 until cdf.length).foreach((d: Int) => if(cdf(d) <= choice) ix = d + 1)
       x = DenseMatrix.zeros[Double](vocab_size, 1)
       x(ix,0) = 1
       ixes += ix
@@ -185,7 +187,7 @@ class minCharRNN(filename: String) extends RNN {
       val mems = List(mWxh, mWhh, mWhy, mbh, mby)
       (0 until 5).foreach((i: Int) => {
         mems(i) += deltas(i) :* deltas(i)
-        weights(i) += -momentum :* deltas(i) / sqrt(mems(i) + 1e-8)
+        weights(i) += -momentum :* (deltas(i) / sqrt(mems(i) + 1e-8))
       })
       // move counters
       p += history_length
