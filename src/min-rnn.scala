@@ -82,8 +82,7 @@ class minCharRNN(filename: String) extends RNN {
       xs += DenseMatrix.zeros[Double](vocab_size, 1)
       xs(t)(inputs(t), 0) = 1
       // hidden state
-      val ind = if(t == 0) 0 else t-1
-      hs += tanh( Wxh * xs(t) + Whh * hs(ind) + bh )
+      hs += tanh( Wxh * xs(t) + Whh * hs(t) + bh )
       ys += Why * hs(t) + by
       ps += exp(ys(t)) / sum(exp(ys(t))) //softmax probability
       loss += -log(ps(t)(targets(t),0)) //cross entropy loss
@@ -110,8 +109,8 @@ class minCharRNN(filename: String) extends RNN {
       var dhraw = (1.0 - (hs(t) :* hs(t))) :* dh
       dbh :+= dhraw
       dWxh :+= dhraw * xs(t).t
-      val historystate = if(t == 0) hs.last else hs(t-1)
-      dWhh :+= dhraw * historystate.t
+      //val historystate = if(t == 0) hs.last else hs(t-1)
+      dWhh :+= dhraw * hs(t).t
       dhnext = Whh.t * dhraw
     }
 
@@ -122,7 +121,7 @@ class minCharRNN(filename: String) extends RNN {
     dbh = clip(dbh, -5.0, 5.0)
     dby = clip(dby, -5.0, 5.0)
 
-    return (loss, dWxh, dWhh, dWhy, dbh, dby, hs(inputs.length - 1))
+    (loss, dWxh, dWhh, dWhy, dbh, dby, hs(inputs.length - 1))
   }
 
   // sample function
@@ -145,7 +144,7 @@ class minCharRNN(filename: String) extends RNN {
       x(ix,0) = 1
       ixes += ix
     }
-    return ixes
+    ixes
   }
   // main function
   def main() = {
@@ -161,12 +160,10 @@ class minCharRNN(filename: String) extends RNN {
       var targets = data.slice(p+1, p+history_length+1).map(map_ch_ix).toList
 
       // sample when the number of iterations is something
-      if(n % 10000 == 0) {
+      if(n % 1000 == 0) {
         val sample_ix = sample(hprev, inputs.head, 1000)
         val chars = sample_ix.map(map_ix_ch).mkString
-        println("---\n")
-        println(chars)
-        println("\n---")
+        println("---\n" + chars + "\n---")
       }
       // get new gradients
       val gradients = lossFunction(inputs, targets, hprev)
@@ -176,7 +173,7 @@ class minCharRNN(filename: String) extends RNN {
       // calculate new loss
       smooth_loss = smooth_loss * 0.999 + loss * 0.001
       // print progress
-      if(n % 10000 == 0) println("Iteration " + n + ", loss: " + smooth_loss)
+      if(n % 1000 == 0) println("Iteration " + n + ", loss: " + smooth_loss)
 
       // update parameters
       val weights = List(Wxh, Whh, Why, bh, by)
