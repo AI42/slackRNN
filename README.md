@@ -1,7 +1,7 @@
 # min-char-rnn in Scala
 
-This is a reimplementation of Andrej Karpathy's min-char-rnn.py code that was written in Python/Numpy
-This reimplementation builds on `Breeze` from Scala NLP and is written in Scala
+This is a reimplementation of Andrej Karpathy's min-char-rnn.py code that was written in Python/Numpy.
+This reimplementation builds on `Breeze` from Scala NLP and is written in Scala.
 Otherwise, it should perform the same.
 
 Original Python code: <https://gist.github.com/karpathy/d4dee566867f8291f086>
