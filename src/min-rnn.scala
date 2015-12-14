@@ -24,6 +24,8 @@ class minCharRNN(filename: String) extends RNN {
   var map_ch_ix = (0 until vocab_size).map((i: Int) => (chars(i) -> i)).toMap
   var map_ix_ch = (0 until vocab_size).map((i: Int) => (i -> chars(i))).toMap
 
+  // initialize weights and other variables as defined in the RNN trait
+
   var xs: ArrayBuffer[DenseMatrix[Double]] = _
   var hs: ArrayBuffer[DenseMatrix[Double]] = _
   var ys: ArrayBuffer[DenseMatrix[Double]] = _
@@ -109,7 +111,6 @@ class minCharRNN(filename: String) extends RNN {
       var dhraw = (1.0 - (hs(t) :* hs(t))) :* dh
       dbh :+= dhraw
       dWxh :+= dhraw * xs(t).t
-      //val historystate = if(t == 0) hs.last else hs(t-1)
       dWhh :+= dhraw * hs(t).t
       dhnext = Whh.t * dhraw
     }
@@ -136,10 +137,10 @@ class minCharRNN(filename: String) extends RNN {
       val p = exp(y) / sum(exp(y))
       // scala/breeze doesn't have the equivalent of np.random.choice
       // need to make the choice differently
-      val choice = rand()
-      val cdf = accumulate(p.toDenseVector)
+      val choice = rand() // pick a random number between 0 and 1
+      val cdf = accumulate(p.toDenseVector) // create a cumulative sum of all probabilities
       var ix = 0
-      (0 until cdf.length).foreach((d: Int) => if(cdf(d) <= choice) ix = d + 1)
+      (0 until cdf.length).foreach((d: Int) => if(cdf(d) <= choice) ix = d + 1) // find where the random number falls in this "CDF"
       x = DenseMatrix.zeros[Double](vocab_size, 1)
       x(ix,0) = 1
       ixes += ix
