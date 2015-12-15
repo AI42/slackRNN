@@ -71,6 +71,12 @@ class slackParser(folder: String, user_json: String) {
     val id_name = parsed.map((m: Map[String, String]) => m("id") -> m("name")).toMap
     id_name
   }
+
+  def clean(users: Map[String, String], text: String): String = {
+    var newtext = text
+    users.foreach((u: (String, String)) => newtext = newtext.replaceAll("<@" + u._1 + ">", "@"+u._2))
+    newtext
+  }
   def main() = {
     // get all json filenames from the given folder (recursively too)
     val fold = new File(folder)
@@ -82,11 +88,10 @@ class slackParser(folder: String, user_json: String) {
         case Some(m: mutable.Map[String, String]) => mapMerger(master_map, m)
         case None => Unit
     })
-    // TODO: fetch all user names, link IDs with user names and replace them in output and filenames
     // fetch all users and get a map of ID -> username
     val usernames = parseUsers(user_json)
     // replace usernames
-    master_map = master_map.map((m: (String, String)) => usernames(m._1) -> m._2)
+    master_map = master_map.map((m: (String, String)) => usernames(m._1) -> clean(usernames, m._2))
 
     // write maps as txt files, one for each user
     master_map.foreach((u: (String, String)) => {
