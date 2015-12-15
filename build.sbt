@@ -14,7 +14,10 @@ libraryDependencies  ++= Seq(
   "org.scalanlp" %% "breeze-natives" % "0.11.2",
   // the visualization library is distributed separately as well.
   // It depends on LGPL code.
-    "org.scalanlp" %% "breeze-viz" % "0.11.2"
+  "org.scalanlp" %% "breeze-viz" % "0.11.2",
+  //parsers
+  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.2"
+
 )
 
 resolvers ++= Seq(

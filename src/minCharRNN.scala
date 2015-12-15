@@ -41,9 +41,13 @@ class minCharRNN(filename: String) extends RNN {
   var dhnext: DenseMatrix[Double] = _
 
   // set hyperparameters
-  val hidden_size = 100
-  val history_length = 25
-  val momentum = 0.1
+  val hidden_size = 125 // number of neurons in the hidden layer
+  val history_length = 25 // how much to remember
+  val momentum = 0.2 // learning rate
+  val decay = 0.99 // learning rate decay
+  val decay_after = 1000 // when to start decaying learning rate
+
+  var momentum_now = 0.2 // variable to hold decayed momentum
 
   // define empty weight matrices
   var Wxh = DenseMatrix.rand(hidden_size, vocab_size) :* 0.01
@@ -156,6 +160,7 @@ class minCharRNN(filename: String) extends RNN {
       if (p + history_length + 1 >= data_size || n == 0) {
         hprev = DenseMatrix.zeros[Double](hidden_size,1)
         p = 0
+        momentum_now = if (n > decay_after) momentum_now * decay else momentum_now // decay momentum whenever you pass through the whole data and it is after decay_after
       }
       var inputs = data.slice(p, p+history_length).map(map_ch_ix).toList
       var targets = data.slice(p+1, p+history_length+1).map(map_ch_ix).toList
@@ -180,9 +185,10 @@ class minCharRNN(filename: String) extends RNN {
       val weights = List(Wxh, Whh, Why, bh, by)
       val deltas = List(dWxh, dWhh, dWhy, dbh, dby)
       val mems = List(mWxh, mWhh, mWhy, mbh, mby)
+
       (0 until 5).foreach((i: Int) => {
         mems(i) += deltas(i) :* deltas(i)
-        weights(i) += -momentum :* (deltas(i) / sqrt(mems(i) + 1e-8))
+        weights(i) += -momentum_now :* (deltas(i) / sqrt(mems(i) + 1e-8))
       })
       // move counters
       p += history_length
