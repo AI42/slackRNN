@@ -3,7 +3,7 @@ import sun.font.TrueTypeFont
 import scala.collection.mutable
 import scala.io.Source
 import scala.util.parsing.json._
-import java.io.File
+import java.io._
 
 class slackParser(folder: String) {
 
@@ -30,7 +30,7 @@ class slackParser(folder: String) {
       // first remove all subtype messages nad only keep messages
       val messages = slack_json.filter((m: Map[String, String]) => m.head._1 == "type")
       // then get all usernames
-      val users = slack_json.map((m: Map[String, String]) => m("user")).toSet.toList
+      val users = messages.map((m: Map[String, String]) => m("user")).toSet.toList
       // then for each user, match messages to user and return a user -> text map
       // prepare mutable map
       var user_map = collection.mutable.Map[String, String]()
@@ -71,9 +71,15 @@ class slackParser(folder: String) {
         case Some(m: mutable.Map[String, String]) => mapMerger(master_map, m)
         case None => Unit
     })
-
-    println(master_map)
     // write maps as txt files, one for each user
+    master_map.foreach((u: (String, String)) => {
+      val filename = u._1 + ".txt"
+      val newfile = new File(filename)
+      newfile.createNewFile()
+      val pw = new PrintWriter(newfile)
+      pw.write(u._2)
+      pw.close
+    })
   }
 
 }
