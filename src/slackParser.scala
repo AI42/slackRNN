@@ -91,9 +91,11 @@ class slackParser(folder: String, user_json: String, channel_json: String) {
     var newtext = text
     users.foreach((u: (String, String)) => newtext = newtext.replaceAll("<@" + u._1 + ">", "@"+u._2)) // clean user IDs
     channels.foreach((c: (String, String)) => newtext = newtext.replaceAll("<#" + c._1 + ">", "#"+c._2)) // clean channel IDs
-    //replace @channel, @everyone
+    // replace @channel, @everyone
     newtext = newtext.replaceAll("<!channel>", "@channel")
     newtext = newtext.replaceAll("<!everyone", "@everyone")
+    // replace safe/escaped characters, especially ">"
+    newtext = newtext.replaceAll("&gt;", ">")
     newtext
   }
   def main() = {
