@@ -75,6 +75,9 @@ class slackParser(folder: String, user_json: String) {
   def clean(users: Map[String, String], text: String): String = {
     var newtext = text
     users.foreach((u: (String, String)) => newtext = newtext.replaceAll("<@" + u._1 + ">", "@"+u._2))
+    //replace @channel, @everyone
+    newtext = newtext.replaceAll("<!channel>", "@channel")
+    newtext = newtext.replaceAll("<!everyone", "@everyone")
     newtext
   }
   def main() = {
