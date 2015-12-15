@@ -1,7 +1,7 @@
 lazy val commonSettings = Seq(
-  organization := "com.example",
+  organization := "com.quantopy",
   version := "0.1.0",
-  scalaVersion := "2.11.4"
+  scalaVersion := "2.11.7"
 )
 
 libraryDependencies  ++= Seq(
