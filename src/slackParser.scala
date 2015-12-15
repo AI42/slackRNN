@@ -6,7 +6,7 @@ import scala.util.parsing.json._
 import java.io._
 
 class slackParser(folder: String, user_json: String, channel_json: String) {
-  // keep user json file outside the main archive folder
+  // keep user and channel json files outside the main archive folder
 
   val json_format = """.*\.json$""".r
 
@@ -29,7 +29,7 @@ class slackParser(folder: String, user_json: String, channel_json: String) {
     } else {
       // first remove all subtype messages nad only keep messages
       val messages = slack_json.filter((m: Map[String, String]) => m.head._1 == "type")
-      // then get all usernames
+      // then get all user names
       val users = messages.map((m: Map[String, String]) => m("user")).toSet.toList
       // then for each user, match messages to user and return a user -> text map
       // prepare mutable map
