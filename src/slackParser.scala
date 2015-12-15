@@ -5,7 +5,7 @@ import scala.io.Source
 import scala.util.parsing.json._
 import java.io._
 
-class slackParser(folder: String, user_json: String) {
+class slackParser(folder: String, user_json: String, channel_json: String) {
   // keep user json file outside the main archive folder
 
   val json_format = """.*\.json$""".r
@@ -60,6 +60,7 @@ class slackParser(folder: String, user_json: String) {
     branch.filterNot( (t: (String, String) ) => master.keySet contains t._1 ).foreach((s: (String, String)) => master += s)
   }
 
+  // parse list of users with their IDs
   def parseUsers(userfile: String): Map[String, String] = {
     val rawtext = Source.fromFile(userfile).getLines().mkString
     // parse raw text as JSON - returns option of List of Maps
@@ -72,9 +73,24 @@ class slackParser(folder: String, user_json: String) {
     id_name
   }
 
-  def clean(users: Map[String, String], text: String): String = {
+  // parse list of channels with their IDs
+  def parseChannels(channelfile: String): Map[String, String] = {
+    val rawtext = Source.fromFile(channelfile).getLines().mkString
+    // parse raw text as JSON - returns option of List of Maps
+    val parsed: List[Map[String,String]] = JSON.parseFull(rawtext) match {
+      case Some(l: List[Map[String, String]]) => l
+      case None => List()
+      case _ => List()
+    }
+    val id_name = parsed.map((m: Map[String, String]) => m("id") -> m("name")).toMap
+    id_name
+  }
+
+  // clean a given string of text
+  def clean(users: Map[String, String], channels: Map[String, String], text: String): String = {
     var newtext = text
-    users.foreach((u: (String, String)) => newtext = newtext.replaceAll("<@" + u._1 + ">", "@"+u._2))
+    users.foreach((u: (String, String)) => newtext = newtext.replaceAll("<@" + u._1 + ">", "@"+u._2)) // clean user IDs
+    channels.foreach((c: (String, String)) => newtext = newtext.replaceAll("<#" + c._1 + ">", "#"+c._2)) // clean channel IDs
     //replace @channel, @everyone
     newtext = newtext.replaceAll("<!channel>", "@channel")
     newtext = newtext.replaceAll("<!everyone", "@everyone")
@@ -93,8 +109,10 @@ class slackParser(folder: String, user_json: String) {
     })
     // fetch all users and get a map of ID -> username
     val usernames = parseUsers(user_json)
-    // replace usernames
-    master_map = master_map.map((m: (String, String)) => usernames(m._1) -> clean(usernames, m._2))
+    // fetch all channels and get a map of ID -> channel name
+    val channels = parseChannels(channel_json)
+    // replace usernames and channel names
+    master_map = master_map.map((m: (String, String)) => usernames(m._1) -> clean(usernames, channels, m._2))
 
     // write maps as txt files, one for each user
     master_map.foreach((u: (String, String)) => {
