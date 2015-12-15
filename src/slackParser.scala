@@ -5,7 +5,8 @@ import scala.io.Source
 import scala.util.parsing.json._
 import java.io._
 
-class slackParser(folder: String) {
+class slackParser(folder: String, user_json: String) {
+  // keep user json file outside the main archive folder
 
   val json_format = """.*\.json$""".r
 
@@ -60,6 +61,13 @@ class slackParser(folder: String) {
     branch.filterNot( (t: (String, String) ) => master.keySet contains t._1 ).foreach((s: (String, String)) => master += s)
   }
 
+  def parseUsers(userfile: String): Map[String, String] = {
+    val rawtext = Source.fromFile(userfile).getLines().mkString
+    // parse raw text as JSON - returns option of List of Maps
+    val parsed = JSON.parseFull(rawtext).get
+    val id_name = parsed.map((m: Map[String, String]) => (m("id") -> m("name"))).toMap
+    id_name
+  }
   def main() = {
     // get all json filenames from the given folder (recursively too)
     val fold = new File(folder)
@@ -71,6 +79,9 @@ class slackParser(folder: String) {
         case Some(m: mutable.Map[String, String]) => mapMerger(master_map, m)
         case None => Unit
     })
+    // TODO: fetch all user names, link IDs with usernames and replace them in output and filenames
+    // fetch all users and get a map of ID -> username
+
     // write maps as txt files, one for each user
     master_map.foreach((u: (String, String)) => {
       val filename = u._1 + ".txt"
