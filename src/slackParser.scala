@@ -27,7 +27,6 @@ class slackParser(folder: String, user_json: String) {
       println("JSON not parsed properly")
       None
     } else {
-      println("JSON parsed properly")
       // first remove all subtype messages nad only keep messages
       val messages = slack_json.filter((m: Map[String, String]) => m.head._1 == "type")
       // then get all usernames
@@ -35,9 +34,9 @@ class slackParser(folder: String, user_json: String) {
       // then for each user, match messages to user and return a user -> text map
       // prepare mutable map
       var user_map = collection.mutable.Map[String, String]()
-      users.foreach((u: String) => user_map += (u -> " "))
+      users.foreach((u: String) => if (u != "USLACKBOT") user_map += (u -> " "))
       // save text to map
-      messages.foreach((m: Map[String, String]) => user_map(m("user")) += "\n\n" + m("text"))
+      messages.foreach((m: Map[String, String]) => if (m("user") != "USLACKBOT") user_map(m("user")) += "\n\n" + m("text"))
       // return Map as an Option
       Some(user_map)
     }
@@ -64,8 +63,12 @@ class slackParser(folder: String, user_json: String) {
   def parseUsers(userfile: String): Map[String, String] = {
     val rawtext = Source.fromFile(userfile).getLines().mkString
     // parse raw text as JSON - returns option of List of Maps
-    val parsed = JSON.parseFull(rawtext).get
-    val id_name = parsed.map((m: Map[String, String]) => (m("id") -> m("name"))).toMap
+    val parsed: List[Map[String,String]] = JSON.parseFull(rawtext) match {
+      case Some(l: List[Map[String, String]]) => l
+      case None => List()
+      case _ => List()
+    }
+    val id_name = parsed.map((m: Map[String, String]) => m("id") -> m("name")).toMap
     id_name
   }
   def main() = {
@@ -79,8 +82,11 @@ class slackParser(folder: String, user_json: String) {
         case Some(m: mutable.Map[String, String]) => mapMerger(master_map, m)
         case None => Unit
     })
-    // TODO: fetch all user names, link IDs with usernames and replace them in output and filenames
+    // TODO: fetch all user names, link IDs with user names and replace them in output and filenames
     // fetch all users and get a map of ID -> username
+    val usernames = parseUsers(user_json)
+    // replace usernames
+    master_map = master_map.map((m: (String, String)) => usernames(m._1) -> m._2)
 
     // write maps as txt files, one for each user
     master_map.foreach((u: (String, String)) => {
