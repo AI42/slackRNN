@@ -24,10 +24,6 @@ trait RNN {
   var dby: DenseMatrix[Double]
   var dhnext: DenseMatrix[Double]
 
-  val hidden_size: Int
-  val history_length: Int
-  val momentum: Double
-
   var Wxh: DenseMatrix[Double]
   var Whh: DenseMatrix[Double]
   var Why: DenseMatrix[Double]
