@@ -8,12 +8,11 @@ import scala.io.Source
 // read text data
 // TODO: read file name from command line argument
 
-class minCharRNN(filename: String) extends RNN {
+class minCharRNN(filename: String, hidden_size: Int = 125, history_length: Int = 30, momentum: Double = 0.2, decay: Double = 0.99, decay_after: Int = 10000) extends RNN {
   // first load input file on instantiation
   var data = Source.fromFile(filename).getLines.mkString
   val dataList = data.toList
   var chars = dataList.toSet.toList
-
 
   var data_size = data.length
   var vocab_size = chars.length
@@ -40,14 +39,7 @@ class minCharRNN(filename: String) extends RNN {
   var dby: DenseMatrix[Double] = _
   var dhnext: DenseMatrix[Double] = _
 
-  // set hyperparameters
-  val hidden_size = 125 // number of neurons in the hidden layer
-  val history_length = 25 // how much to remember
-  val momentum = 0.2 // learning rate
-  val decay = 0.99 // learning rate decay
-  val decay_after = 1000 // when to start decaying learning rate
-
-  var momentum_now = 0.2 // variable to hold decayed momentum
+  var momentum_now = momentum // variable to hold decayed momentum
 
   // define empty weight matrices
   var Wxh = DenseMatrix.rand(hidden_size, vocab_size) :* 0.01
